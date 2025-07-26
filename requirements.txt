@@ -1,5 +1,5 @@
-pandas
-nltk
-torch
-transformers
 streamlit
+transformers
+nltk
+pandas
+google-api-python-client

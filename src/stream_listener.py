@@ -1,24 +1,37 @@
-import os
+# stream_listener.py
+from googleapiclient.discovery import build
 import time
-import pandas as pd
 
-# ✅ Load simulated or fallback data
-def load_simulated_data():
-    file_path = "data/simulated_comments.csv"
-    if not os.path.exists(file_path):
-        print("[INFO] File not found, using fallback sample messages.")
-        return pd.DataFrame({"message": [
-            "You're awesome!",
-            "This video sucks.",
-            "Thanks for sharing!",
-            "Worst video ever.",
-        ]})
-    return pd.read_csv(file_path)
+# 🔑 Paste your API key here
+YOUTUBE_API_KEY = "AIzaSyDbxax8_q1uZ3CosNjz8t9sbscbs30JjLU"
 
-# 🔁 Optional: stream messages every X seconds and pass to a callback
-def stream_messages(callback, delay=10):
+# 🎥 Replace this with the actual live video ID (from YouTube URL)
+VIDEO_ID = "abcd1234XYZ"
+
+def get_live_chat_id(video_id):
+    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+    response = youtube.videos().list(
+        part='liveStreamingDetails',
+        id=video_id
+    ).execute()
+    return response['items'][0]['liveStreamingDetails']['activeLiveChatId']
+
+def stream_messages(delay=2):
+    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+    chat_id = get_live_chat_id(VIDEO_ID)
+    next_page_token = None
+
     while True:
-        messages_df = load_simulated_data()
-        callback(messages_df)
-        time.sleep(delay)
+        response = youtube.liveChatMessages().list(
+            liveChatId=chat_id,
+            part='snippet,authorDetails',
+            pageToken=next_page_token
+        ).execute()
 
+        for item in response.get('items', []):
+            message = item['snippet']['displayMessage']
+            yield message
+
+        next_page_token = response.get('nextPageToken')
+        polling_interval = int(response.get('pollingIntervalMillis', 2000)) / 1000.0
+        time.sleep(polling_interval)
