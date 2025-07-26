@@ -1,11 +1,7 @@
 import streamlit as st
-from stream_listener import load_simulated_data, stream_messages
-from preprocessing import clean_text
-from classifier import classify_message
-<<<<<<< HEAD
-
-=======
->>>>>>> 83f23b5e4f505b87ecd8aa2087d9704d5d2ec123
+from src.stream_listener import load_simulated_data, stream_messages
+from src.preprocessing import clean_text
+from src.classifier import classify_message
 
 st.title("🛡️ Real-Time Toxic Comment Detection")
 
