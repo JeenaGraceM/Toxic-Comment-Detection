@@ -5,8 +5,10 @@ import time
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-YOUTUBE_API_KEY =st.secrets.get("YOUTUBE_API_KEY")
+YOUTUBE_API_KEY = st.secrets.get("YOUTUBE_API_KEY")
+if not YOUTUBE_API_KEY:
+    st.error("❌ YOUTUBE_API_KEY not found in Streamlit secrets. Please set it in the app settings.")
+    st.stop()
 
 # 🎥 Replace this with the actual live video ID (from YouTube URL)
 VIDEO_ID = "tXRuaacO-ZU"
