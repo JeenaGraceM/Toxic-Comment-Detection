@@ -6,7 +6,7 @@ import time
 YOUTUBE_API_KEY = "AIzaSyDbxax8_q1uZ3CosNjz8t9sbscbs30JjLU"
 
 # 🎥 Replace this with the actual live video ID (from YouTube URL)
-VIDEO_ID = "abcd1234XYZ"
+VIDEO_ID = "fcToUAi46iY"
 
 def get_live_chat_id(video_id):
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
