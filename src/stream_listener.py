@@ -2,11 +2,14 @@
 from googleapiclient.discovery import build
 import time
 
-# 🔑 Paste your API key here
-YOUTUBE_API_KEY = "AIzaSyDbxax8_q1uZ3CosNjz8t9sbscbs30JjLU"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 
 # 🎥 Replace this with the actual live video ID (from YouTube URL)
-VIDEO_ID = "fcToUAi46iY"
+VIDEO_ID = "tXRuaacO-ZU"
 
 def get_live_chat_id(video_id):
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
