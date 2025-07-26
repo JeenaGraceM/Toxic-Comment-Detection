@@ -4,3 +4,4 @@ nltk
 pandas
 google-api-python-client
 python-dotenv
+torch
