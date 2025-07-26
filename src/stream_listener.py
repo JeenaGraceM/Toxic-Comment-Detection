@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+YOUTUBE_API_KEY =st.secrets["YOUTUBE_API_KEY"]
 
 # 🎥 Replace this with the actual live video ID (from YouTube URL)
 VIDEO_ID = "tXRuaacO-ZU"
