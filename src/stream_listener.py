@@ -5,7 +5,7 @@ import time
 import os
 from dotenv import load_dotenv
 
-YOUTUBE_API_KEY = st.secrets.get("YOUTUBE_API_KEY")
+YOUTUBE_API_KEY = st.secrets.get("YOUTUBE_API_KEY",None)
 if not YOUTUBE_API_KEY:
     st.error("❌ YOUTUBE_API_KEY not found in Streamlit secrets. Please set it in the app settings.")
     st.stop()
