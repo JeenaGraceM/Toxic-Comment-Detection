@@ -12,7 +12,7 @@ if not YOUTUBE_API_KEY:
     st.stop()
 
 # 🎥 Replace this with the actual live video ID (from YouTube URL)
-VIDEO_ID = "tXRuaacO-ZU"
+VIDEO_ID = st.secrets.get("VIDEO_ID",None)
 
 def get_live_chat_id(video_id):
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
