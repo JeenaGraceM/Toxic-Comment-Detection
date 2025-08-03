@@ -1,25 +1,19 @@
-# stream_listener.py
 from googleapiclient.discovery import build
 import time
 import streamlit as st
 import os
 from dotenv import load_dotenv
 
-# Load .env for local development (optional)
 load_dotenv()
 
-# 🔐 Securely load API key and video ID
+# Load API key
 YOUTUBE_API_KEY = st.secrets.get("YOUTUBE_API_KEY") or os.getenv("YOUTUBE_API_KEY")
-VIDEO_ID = st.secrets.get("VIDEO_ID") or os.getenv("VIDEO_ID")
 
-# Check for required secrets
 if not YOUTUBE_API_KEY:
-    st.error("❌ YOUTUBE_API_KEY not found in Streamlit secrets or environment. Please set it.")
-    st.stop()
-if not VIDEO_ID:
-    st.error("❌ VIDEO_ID not found. Please set it in Streamlit secrets or .env.")
+    st.error("❌ YOUTUBE_API_KEY not found in Streamlit secrets or .env file.")
     st.stop()
 
+# Get live chat ID from YouTube
 def get_live_chat_id(video_id):
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
     response = youtube.videos().list(
@@ -32,12 +26,13 @@ def get_live_chat_id(video_id):
         return None
     return items[0].get('liveStreamingDetails', {}).get('activeLiveChatId')
 
-def stream_messages(delay=2):
+# Stream chat messages
+def stream_messages(video_id, delay=2):
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
-    chat_id = get_live_chat_id(VIDEO_ID)
+    chat_id = get_live_chat_id(video_id)
 
     if not chat_id:
-        st.error("❌ Could not find live chat ID. Make sure the video is live and ID is correct.")
+        st.error("❌ Could not find active chat. Make sure the video is live.")
         return
 
     next_page_token = None
@@ -50,8 +45,7 @@ def stream_messages(delay=2):
         ).execute()
 
         for item in response.get('items', []):
-            message = item['snippet']['displayMessage']
-            yield message
+            yield item['snippet']['displayMessage']
 
         next_page_token = response.get('nextPageToken')
         polling_interval = int(response.get('pollingIntervalMillis', 2000)) / 1000.0
