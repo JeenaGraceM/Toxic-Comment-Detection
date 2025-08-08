@@ -7,3 +7,4 @@ textblob
 nltk
 google-api-python-client
 python-dotenv
+matplotlib
