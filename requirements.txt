@@ -1,10 +1,9 @@
-scikit-learn
-classifier
 streamlit
 transformers
 torch
-nltk
+scikit-learn
 pandas
+textblob
+nltk
 google-api-python-client
 python-dotenv
-
