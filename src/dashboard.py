@@ -3,69 +3,96 @@ import pandas as pd
 import time
 from stream_listener import stream_messages
 from preprocessing import clean_text
-from classifier import classify_text  # ✅ using the hybrid model now
+from classifier import classify_text
+from textblob import TextBlob
+import matplotlib.pyplot as plt
 
-# Streamlit layout
-st.set_page_config(page_title="Toxic Comment Detection", layout="wide")
-st.title("🛡️ Real-Time Toxic Comment Detection")
+# --- Page setup ---
+st.set_page_config(page_title="🛡️ Toxic Comment Detector", layout="wide")
+st.title("🧠 Real-Time Toxic Comment Detection Dashboard")
 
-# Sidebar for settings
-st.sidebar.header("🔧 Configuration")
-video_id = st.sidebar.text_input("Enter YouTube Live Video ID", value="", help="Paste the YouTube live video ID here")
+# --- Sidebar ---
+st.sidebar.header("⚙️ Settings")
+video_id = st.sidebar.text_input("🎥 YouTube Live Video ID", help="Paste the live YouTube video ID")
 start_stream = st.sidebar.button("▶️ Start Monitoring")
-show_graphs = st.sidebar.checkbox("📊 Show Visualizations", value=True)
-download_log = st.sidebar.checkbox("💾 Enable Download", value=True)
+enable_download = st.sidebar.checkbox("💾 Enable Download", value=True)
 
-# Layout placeholders
-col1, col2 = st.columns(2)
+# --- Initialize DataFrame ---
+if "results_df" not in st.session_state:
+    st.session_state.results_df = pd.DataFrame(columns=["Message", "Label", "Toxicity", "Polarity", "Exclamations", "Length", "Time"])
+
+results_df = st.session_state.results_df
+chart_placeholder1 = st.empty()
+chart_placeholder2 = st.empty()
+chart_placeholder3 = st.empty()
 message_container = st.container()
-chart_placeholder = st.empty()
 
-# Store results
-results_df = pd.DataFrame(columns=["message", "label", "toxic_score"])
+# --- Helper: draw charts ---
+def draw_graphs(df):
+    if df.empty:
+        return
 
-# Start processing if input is provided
+    with chart_placeholder1.container():
+        st.subheader("📊 Toxic vs Non-Toxic")
+        st.bar_chart(df["Label"].value_counts())
+
+    with chart_placeholder2.container():
+        st.subheader("📈 Toxicity Score Over Time")
+        line_data = df[["Time", "Toxicity"]].set_index("Time")
+        st.line_chart(line_data)
+
+    with chart_placeholder3.container():
+        st.subheader("🌀 Toxicity Distribution")
+        pie_data = df["Label"].value_counts()
+        fig, ax = plt.subplots()
+        ax.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%', startangle=90)
+        ax.axis('equal')
+        st.pyplot(fig)
+
+# --- Streaming Chat ---
 if start_stream and video_id:
-    st.success("✅ Streaming started. Fetching comments from video ID: " + video_id)
+    st.success(f"🚀 Monitoring video: `{video_id}`")
+
     toxic_count, nontoxic_count = 0, 0
 
-    for raw_msg in stream_messages(video_id):
-        cleaned = clean_text(raw_msg)
-        result = classify_text(cleaned)  # ✅ use hybrid model
+    for msg in stream_messages(video_id):
+        cleaned = clean_text(msg)
+        result = classify_text(cleaned)
+
+        # Data extraction
         toxic_score = result["probability_toxic"]
         label = "Toxic" if result["prediction"] == 1 else "Non-Toxic"
+        polarity = round(TextBlob(cleaned).sentiment.polarity, 2)
+        exclamations = msg.count("!")
+        msg_len = len(msg)
+        timestamp = pd.Timestamp.now().strftime("%H:%M:%S")
 
-        # Count update
-        if label == "Toxic":
-            toxic_count += 1
-        else:
-            nontoxic_count += 1
+        # Save to session state
+        new_row = pd.DataFrame([[msg, label, toxic_score, polarity, exclamations, msg_len, timestamp]],
+                               columns=results_df.columns)
+        st.session_state.results_df = pd.concat([st.session_state.results_df, new_row], ignore_index=True)
+        results_df = st.session_state.results_df
 
-        # Save result
-        results_df.loc[len(results_df)] = [raw_msg, label, toxic_score]
-
-        # Display message and score
+        # Display
         with message_container:
-            st.write(f"{label} Message: {raw_msg}")
-            st.json(result)
+            st.markdown(f"**[{label}]** `{msg}`")
+            st.caption(f"🧪 Toxicity: {toxic_score:.2f} | 📏 Length: {msg_len} | ❗ Exclamations: {exclamations} | ⚖️ Polarity: {polarity}")
 
-        # Update metrics
-        col1.metric("☣️ Toxic Comments", toxic_count)
-        col2.metric("✅ Non-Toxic Comments", nontoxic_count)
-
-        # Graph update
-        if show_graphs:
-            chart_data = pd.DataFrame({
-                "Labels": ["Toxic", "Non-Toxic"],
-                "Counts": [toxic_count, nontoxic_count]
-            })
-            chart_placeholder.bar_chart(chart_data.set_index("Labels"))
+        # Update graphs
+        draw_graphs(results_df)
 
         time.sleep(1.5)
 
-    # Download results
-    if download_log and not results_df.empty:
-        csv = results_df.to_csv(index=False).encode('utf-8')
-        st.download_button("📥 Download Chat Log", data=csv, file_name="chat_log.csv", mime='text/csv')
+    # Download button
+    if enable_download and not results_df.empty:
+        csv = results_df.to_csv(index=False).encode("utf-8")
+        st.download_button("📥 Download Chat Log", data=csv, file_name="chat_log.csv", mime="text/csv")
+
 else:
-    st.info("Please enter a valid YouTube Live Video ID and click 'Start Monitoring'.")
+    st.info("👈 Enter a valid YouTube Live Video ID and click **Start Monitoring**.")
+
+# Show live stats always
+if not results_df.empty:
+    st.markdown("---")
+    st.subheader("📋 Chat Log")
+    st.dataframe(results_df.tail(10), use_container_width=True)
