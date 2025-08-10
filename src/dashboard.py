@@ -44,7 +44,7 @@ def draw_graphs(df):
     with chart_placeholder3.container():
         st.subheader("🌀 Toxicity Distribution")
         pie_data = df["Label"].value_counts()
-        fig, ax = plt.subplots(figsize=(3, 3))  # ⬅ Smaller size in inches
+        fig, ax = plt.subplots(figsize=(2,2))
         ax.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%', startangle=90)
         ax.axis('equal')
         st.pyplot(fig)
