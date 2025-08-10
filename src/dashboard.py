@@ -44,33 +44,11 @@ def draw_graphs(df):
     with chart_placeholder3.container():
         st.subheader("🌀 Toxicity Distribution")
         pie_data = df["Label"].value_counts()
-    
-        # Create smaller figure
-        fig, ax = plt.subplots(figsize=(4, 4))  # Smaller size
-        colors = ["#2E86C1", "#E67E22"]  # Custom colors
-    
-        wedges, texts, autotexts = ax.pie(
-            pie_data,
-            labels=None,  # Remove labels from inside
-            autopct='%1.1f%%',
-            startangle=90,
-            colors=colors,
-            textprops={'color': "white", 'weight': 'bold'}
-        )
-    
-        # Equal aspect ratio for perfect circle
+        fig, ax = plt.subplots()
+        ax.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%', startangle=90)
         ax.axis('equal')
-    
-        # Add legend outside
-        ax.legend(
-            wedges,
-            pie_data.index,
-            title="Labels",
-            loc="center left",
-            bbox_to_anchor=(1, 0, 0.5, 1)
-        )
-    
         st.pyplot(fig)
+
 
 
 # --- Streaming Chat ---
